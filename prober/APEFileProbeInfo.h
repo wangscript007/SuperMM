@@ -2,6 +2,8 @@
 
 #define _APE_FILE_PROBE_INFO_H_
 
+#include <map>
+#include <string>
 #include "BaseProber.h"
 #include "FileDataReader.h"
 
@@ -41,6 +43,7 @@ public:
     ~APEFileProbeInfo();
 
     void FileParse();
+    int32_t parseAPETag();
     void InfoDump();
 private:
     FileDataReader *mFileDataReader;
@@ -48,6 +51,8 @@ private:
 
     uint32_t *mSeekTable;
     ApeFrame *mAPEFrames;
+
+    map<string, string> mTagAttribute;
 };
 
 BaseProber *ProbeAPE(FileDataReader *reader);

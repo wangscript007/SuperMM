@@ -52,7 +52,7 @@ int main(int argc,char *argv[]) {
             prober->FileParse();
             prober->InfoDump();
 
-            while(1) {
+/*            while(1) {
                 DataBuffer *buff = new DataBuffer();
                 prober->readData(1, buff);
                 if (buff == NULL) {
@@ -63,7 +63,7 @@ int main(int argc,char *argv[]) {
                 free(buff->data);
                 delete buff;
             }
-
+*/
             delete filereader;
             delete reg;
         }

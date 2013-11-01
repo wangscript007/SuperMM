@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "Utils.h"
 #include "APEFileProbeInfo.h"
@@ -179,6 +180,72 @@ void APEFileProbeInfo::FileParse() {
         }
         mAPEFrames[i].size = (mAPEFrames[i].size + 3) & ~3;
     }
+    
+    //Parse ape tag
+    parseAPETag();
+}
+
+int32_t APEFileProbeInfo::parseAPETag() {
+    uint64_t filesize = mFileDataReader->getFileSize();
+    uint64_t position = filesize - 32; //skip APE Tag Footer
+
+    char *tagid = "APETAGEX";
+
+    uint8_t buff[8];
+    for(uint64_t i = position - 1; i > 0; i--) {
+        mFileDataReader->readAt(i, buff, 8);
+        if (!memcmp(buff, (uint8_t *)tagid, 8)) {
+            position = i;
+            break;
+        }
+    }
+
+    size_t tagsize = filesize - position;
+    uint8_t *tagdata = (uint8_t *)malloc(tagsize);
+    mFileDataReader->readAt(position, tagdata, tagsize);
+
+    printf("%x %x %x\n", tagdata[0], tagdata[1], tagdata[2]);
+    printf("tag size %d\n", tagsize);
+
+    uint32_t version = U32LE_AT(tagdata + 8);
+    uint32_t itemnum = U32LE_AT(tagdata + 16);
+    printf("item num %d\n", itemnum);
+
+    position = 32; //start from tagdata[0]
+    for (int i = 0; i < itemnum; i++) {
+        string key;
+        string value;
+
+        uint32_t len = U32LE_AT(tagdata + position);
+        printf("item len %d\n", len);
+        position += 8; //skip len and flag
+
+        uint64_t tmppos = position;
+        while (1) {
+            if (tagdata[tmppos] == 0x00) {
+                break;
+            }
+            tmppos++;
+        }
+
+        char string[20];
+        memcpy(string, tagdata + position, tmppos - position);
+        key.assign(string, tmppos - position);
+
+        memcpy(string, tagdata + tmppos + 1, len);
+        value.assign(string, len);
+
+        printf("key %s, vlaue %s\n", key.c_str(), value.c_str());
+
+        //mTagAttribute.insert(map<string, string>::value_type(key, value));
+        mTagAttribute.insert(make_pair(key, value));
+
+        position = tmppos + 1;
+        position += len;
+    }
+
+
+    return 0;
 }
 
 void APEFileProbeInfo::InfoDump() {
