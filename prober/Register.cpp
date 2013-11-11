@@ -9,6 +9,7 @@
 #include "ASFFileProbeInfo.h"
 #include "WAVEFileProbeInfo.h"
 #include "FLACFileProbeInfo.h"
+#include "RMVBFileProbeInfo.h"
 
 Register::Register(FileDataReader *reader)
     :mFileDataReader(reader){
@@ -43,6 +44,7 @@ void Register::RegisterAllProber() {
     RegisterProber(ProbeASF);
     RegisterProber(ProbeWAVE);
     RegisterProber(ProbeFLAC);
+    RegisterProber(ProbeRMVB);
 }
 
 BaseProber *Register::probe() {

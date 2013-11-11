@@ -17,6 +17,7 @@ SRC_FILES = BaseProber.cpp \
 			ASFFileProbeInfo.cpp \
 			WAVEFileProbeInfo.cpp \
 			FLACFileProbeInfo.cpp \
+			RMVBFileProbeInfo.cpp \
 			SampleTables.cpp \
 
 OBJS = $(SRC_FILES:.cpp=.o)
