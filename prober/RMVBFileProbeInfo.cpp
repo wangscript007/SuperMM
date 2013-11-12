@@ -81,6 +81,13 @@ int32_t  RMVBFileProbeInfo::parseChunks() {
                 
                 offset += chunk_size;
                 break;
+            case FOURCC('C', 'O', 'N', 'T'):
+                //This chunk contains some text information (like title, author, ...) about the
+                //content of the file. This header has an informative purpose only and it's not needed 
+                //to demux the file. 
+                parseCONT(offset + CHUNK_HEADER_LENGTH);
+                offset += chunk_size;
+                break;
             default:
                 offset += chunk_size;
         }
@@ -183,6 +190,50 @@ int32_t  RMVBFileProbeInfo::parseINDX(uint64_t offset, size_t size) {
         uint32_t timestamp = U32_AT(data + 2);
         uint32_t packetoffset = U32_AT(data + 6);
         position += 14;
+    }
+
+    return 0;
+}
+
+int32_t  RMVBFileProbeInfo::parseCONT(uint64_t offset) {
+    uint16_t length = 0;
+    uint64_t position = offset;
+    char string[100];
+    uint8_t buff[2];
+
+    //Title string
+    mFileDataReader->readAt(position, buff, sizeof(buff));
+    length = U16_AT(buff);
+    if (length > 0) {
+        mFileDataReader->readAt(position + 2, string, length);
+        string[length] = '\0';
+        position += (length + 2);
+    }
+
+    //Author string
+    mFileDataReader->readAt(position, buff, sizeof(buff));
+    length = U16_AT(buff);
+    if (length > 0) {
+        mFileDataReader->readAt(position + 2, string, length);
+        string[length] = '\0';
+        position += (length + 2);
+    }
+
+    //Cotyright string
+    mFileDataReader->readAt(position, buff, sizeof(buff));
+    length = U16_AT(buff);
+    if (length > 0) {
+        mFileDataReader->readAt(position + 2, string, length);
+        string[length] = '\0';
+        position += (length + 2);
+    }
+
+    //Comment string
+    mFileDataReader->readAt(position, buff, sizeof(buff));
+    length = U16_AT(buff);
+    if (length > 0) {
+        mFileDataReader->readAt(position + 2, string, length);
+        string[length] = '\0';
     }
 
     return 0;
