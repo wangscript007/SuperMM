@@ -60,6 +60,13 @@ int32_t  RMVBFileProbeInfo::parseChunks() {
                 offset += chunk_size;
                 break;
             }
+            case FOURCC('M', 'D', 'P', 'R'):
+                //This chunk contains some information about the general properties of a 
+                //RealMedia file. Only one PROP chunk can be present in a file. 
+                parseMDPR(offset + CHUNK_HEADER_LENGTH, chunk_size - CHUNK_HEADER_LENGTH);
+
+                offset += chunk_size;
+                break;
             case FOURCC('P', 'R', 'O', 'P'):
                 //This chunk contains some information about the general properties of a 
                 //RealMedia file. Only one PROP chunk can be present in a file. 
@@ -123,14 +130,15 @@ int32_t  RMVBFileProbeInfo::parsePROP(uint64_t offset, size_t size) {
     printf("stream num: %d size %d %x %x\n", streams_num, size, buff[36], buff[37]);
     uint16_t flags = U16_AT(buff + 38);
 
-    for (uint16_t i = 0; i < streams_num; i++) {
-        TrackInfo info;
-        info.TrackIndex = 0;
+    return 0;
+}
 
-        mTrackVector.push_back(info);
+bool RMVBFileProbeInfo::checkValidStream(char *mime) {
+    if(!strncmp(mime, "video", 5) || !strncmp(mime, "audio", 5)) {
+        return true;
     }
 
-    return 0;
+    return false;
 }
 
 int32_t  RMVBFileProbeInfo::parseMDPR(uint64_t offset, size_t size) {
@@ -148,6 +156,36 @@ int32_t  RMVBFileProbeInfo::parseMDPR(uint64_t offset, size_t size) {
     uint32_t max_packet_size = U32_AT(buff + 10);
     uint32_t ave_packet_size = U32_AT(buff + 14);
 
+    //Stream start offset in ms, 4 bytes.
+    //Preroll in ms, 4 bytes.
+
+    uint32_t stream_duration = U32_AT(buff + 26);
+
+    uint64_t pos = 30;
+    uint8_t description_len = buff[pos];
+    pos++;
+    char description[description_len + 1];
+    memcpy(description, buff + pos, description_len);
+    description[description_len] = '\0';
+    pos += description_len;
+
+    uint8_t mime_len = buff[pos];
+    pos++;
+    char mime[mime_len + 1];
+    memcpy(mime, buff + pos, mime_len);
+    mime[mime_len] = '\0';
+    pos += mime_len;
+    printf("mime %s\n", mime);
+
+    if (checkValidStream(mime)) {
+        TrackInfo info;
+        info.TrackIndex = mTrackIndex;
+        info.StreamNum = stream_num;
+        info.format.append(mime);
+
+        mTrackVector.push_back(info);
+        mTrackIndex++;
+    }
 
     return 0;
 }

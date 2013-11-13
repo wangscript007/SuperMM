@@ -19,6 +19,7 @@ public:
     int32_t parseChunks();
     int32_t  parsePROP(uint64_t offset, size_t size);
     int32_t  parseMDPR(uint64_t offset, size_t size);
+    bool checkValidStream(char *mime);
     int32_t  parseDATA(uint64_t offset);
     int32_t  parseINDX(uint64_t offset, size_t size);
     int32_t  parseCONT(uint64_t offset);

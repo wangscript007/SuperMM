@@ -10,6 +10,7 @@ using namespace std;
 struct TrackInfo {
     int TrackFlag;
     int TrackIndex;
+    int StreamNum;
     string format;
     bool isAudio;
     uint64_t Duration;
